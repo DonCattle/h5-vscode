@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon"
+          href="https://coraladimg.oss-cn-hangzhou.aliyuncs.com/presetcontent/%E7%BD%91%E7%AB%99%E5%AE%A3%E4%BC%A0%E9%A1%B5/coralicon.png"
+          type="image/png">
+    <title>解锁资源</title>
+    <!-- 引入 Vue2 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        /* 重置默认样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 设置根元素字体大小，用于rem单位的计算基准 */
+        html {
+            font-size: 16px;
+            font-size: calc(100vw / 24);
+        }
+
+        /* 设置页面基础样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            max-width: 100vw;
+            overflow-x: hidden;
+            overscroll-behavior-y: contain;
+        }
+
+        /* 内容容器，使用相对单位 */
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0.8rem;
+        }
+
+        /* 顶部SOS提示栏样式 */
+        .alert {
+            background-color: #f3e5f5;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.8rem;
+            color: #333;
+            font-size: 0.8rem;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* SOS图标样式 */
+        .sos-icon {
+            color: #ff4081;
+            margin-right: 0.5rem;
+            display: inline-flex;
+        }
+
+        /* 进度显示区域样式 */
+        .progress-section {
+            background-color: #e1f5fe;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        /* 进度文本居中显示 */
+        .progress-text {
+            text-align: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.9375rem;
+            color: #2196f3;
+        }
+
+        /* 剩余任务数量显示区域 */
+        .remaining-tasks {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        /* 剩余任务数量样式 */
+        .remaining-count {
+            color: #ff4081;
+            font-weight: 500;
+            padding: 0 0.2rem;
+        }
+
+        /* 任务列表标题区域样式 */
+        .task-header {
+            background-color: #e0f2f1;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 标题文本和图标的容器 */
+        .task-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        /* 完成时间提示文本样式 */
+        .task-time {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        /* 任务列表容器样式 */
+        .task-list {
+            background-color: #e0f2f1;
+            padding: 0;
+            border-radius: 0.5rem;
+            margin-bottom: 0.8rem;
+            overflow: hidden;
+        }
+
+        /* 单个任务项样式 */
+        .task-item {
+            margin-bottom: 0;
+            background-color: white;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* 任务项包装器，包含任务项和说明文字 */
+        .task-wrapper {
+            margin: 0;
+            padding: 0.8rem;
+            background-color: #e0f2f1;
+        }
+
+        .task-wrapper + .task-wrapper {
+            padding-top: 0;
+        }
+
+        /* 任务说明区域样式 */
+        .task-instruction {
+            background-color: #f5f5f5;
+            padding: 0.6rem 0.8rem;
+            margin-top: 1px;
+            border-radius: 0 0 0.5rem 0.5rem;
+            font-size: 0.75rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* 任务说明中的强调文字样式 */
+        .highlight {
+            color: #ff4081;
+            font-weight: 500;
+        }
+
+        /* 任务信息区域样式 */
+        .task-info {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* 锁图标样式 */
+        .lock-icon {
+            font-size: 20px;
+        }
+
+        /* 任务名称样式 */
+        .task-name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            font-size: 0.9375rem;
+        }
+
+        /* 任务状态标签样式 */
+        .status {
+            color: #ff4081;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        /* 任务描述文本样式 */
+        .task-desc {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /*
+        弹窗样式↓
+        */
+        /* 弹窗的基础样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+            display: none; /* 默认隐藏 */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex; /* 显示弹窗 */
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 95%;  /* 设置宽度为屏幕的 95% */
+            height: 80%; /* 设置高度为屏幕的 80% */
+
+            max-height: 80%;  /* 保证最大高度 */
+            max-width: 700px;  /* 最大宽度限制为400px，避免过大 */
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto; /* 内容溢出时允许滚动 */
+        }
+
+        .modal-header {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .modal-body {
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding-bottom: 25px;
+        }
+
+        .modal-body img{
+            width: 99%;
+        }
+        .modal-footer {
+            text-align: center;
+            color: #FFD700;
+
+        }
+
+        .modal-footer button {
+            background-color: #f4c756;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 60%;
+        }
+        /* 使文本左对齐 */
+        .steps1 .step1 {
+            text-align: left;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* 设置高亮部分（绿色背景，白色字体） */
+        .highlight1 {
+            background-color: #4CAF50; /* 绿色背景 */
+            color: white;  /* 白色字体 */
+            padding: 0 5px;  /* 给文字加一点内边距 */
+            border-radius: 3px;  /* 可选，圆角 */
+        }
+
+
+        /* 响应式设计，适应更小的屏幕 */
+        @media screen and (max-width: 480px) {
+            .modal-content {
+                width: 95%; /* 确保在小屏幕上适配 */
+                height: 80%; /* 确保弹窗高度适应屏幕 */
+                padding: 15px; /* 调整内边距 */
+            }
+
+            .modal-header {
+                font-size: 14px;
+            }
+
+            .modal-body {
+                font-size: 10px;
+            }
+
+            .modal-footer button {
+                font-size: 14px;
+            }
+        }
+
+        /*
+         弹窗样式↑
+         */
+
+        /* 解锁按钮样式 */
+        .unlock-btn {
+            background: linear-gradient(to right, #ff4081, #ff6b9c);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 1.25rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            min-height: 2.5rem;
+            min-width: 5.5rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(1);
+            outline: none;
+            box-shadow: 0 3px 6px rgba(255, 64, 129, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 按钮点击效果 */
+        .unlock-btn:active {
+            background: linear-gradient(to right, #f80000, #ff0000);
+            transform: scale(0.8);
+            box-shadow: 0 2px 4px rgba(255, 140, 0, 0.3);
+        }
+
+
+        .unlock-btn:active::after {
+            animation: ripple 0.4s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0) translate(-50%, -50%);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(20, 20) translate(-50%, -50%);
+                opacity: 0;
+            }
+        }
+
+        /* 完成状态的按钮样式 */
+        .unlock-btn.completed {
+            background: linear-gradient(to right, #FFD700, #FFA500);
+            cursor: default;
+            transform: scale(1);
+            opacity: 1;
+            box-shadow: 0 3px 6px rgba(255, 215, 0, 0.2);
+        }
+
+        /* 禁用已完成按钮的点击效果 */
+        .unlock-btn.completed:active {
+            transform: scale(1);
+            background: linear-gradient(to right, #FFD700, #FFA500);
+            box-shadow: 0 3px 6px rgba(255, 215, 0, 0.2);
+        }
+
+        .unlock-btn.completed::after {
+            display: none;
+        }
+
+        /* 完成状态的文字样式 */
+        .status.completed {
+            color: #FFD700;
+        }
+
+        /* 底部教程链接容器样式 */
+        .footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* 底部链接样式 */
+        .footer a {
+            color: #2196f3;
+            text-decoration: none;
+        }
+
+        /* 下拉刷新提示样式 */
+        .pull-refresh-indicator {
+            position: fixed;
+            top: -40px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+            transition: transform 0.2s;
+            z-index: 1000;
+        }
+
+        .pull-refresh-indicator.visible {
+            transform: translateY(40px);
+        }
+
+        /* 媒体查询 */
+        @media screen and (min-width: 768px) {
+            html {
+                font-size: 16px;
+            }
+
+            .container {
+                max-width: 600px;
+                padding: 1rem;
+            }
+        }
+
+        @media screen and (max-width: 320px) {
+            html {
+                font-size: calc(100vw / 26);
+            }
+        }
+
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .task-item {
+                padding: 0.6rem;
+            }
+        }
+
+        /* 安全区域边距 */
+        .container {
+            padding-left: max(0.8rem, env(safe-area-inset-left));
+            padding-right: max(0.8rem, env(safe-area-inset-right));
+            padding-bottom: max(0.8rem, env(safe-area-inset-bottom));
+        }
+
+        /* 添加新样式 */
+        /* 完成提示容器样式 */
+        .completion-message {
+            background: linear-gradient(to right, #f0f0f3, #eff0f0);
+            color: rgb(10, 9, 9);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, 0);
+            width: 95%;
+            max-width: 600px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            transition: all 0.5s ease;
+            z-index: 1000;
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            /* 为iOS添加平滑滚动 */
+        }
+
+        .completion-message.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+            pointer-events: auto;
+        }
+
+        /* 完成消息标题样式 */
+        .completion-message > div:first-child {
+            position: sticky;
+            top: 0;
+            background: inherit;
+            padding: 1rem 0;
+            margin: -1.5rem -1.5rem 1rem -1.5rem;
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* 任务列表淡出动画 */
+        .task-container {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.5s ease;
+        }
+
+        .task-container.hide {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+
+        /* API返回内容样式 */
+        .api-content {
+            padding: 0 0.5rem;
+            text-align: left;
+            position: relative;
+            z-index: 1001;
+            pointer-events: auto;
+        }
+
+        .api-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+            text-align: center;
+        }
+
+        .api-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #666;
+            margin-bottom: 1rem;
+            word-break: break-word;
+        }
+
+        /* 复制按钮样式 */
+        .copy-button {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.4rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 1rem auto;
+            display: block;
+            position: relative;
+            z-index: 1001;
+            pointer-events: auto;
+            box-shadow: 0 3px 6px rgba(46, 204, 113, 0.2);
+            min-width: 120px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* 复制按钮点击效果 */
+        .copy-button:active {
+            background: linear-gradient(to right, #fb7542, #ef997f);
+            box-shadow: 0 2px 4px rgba(46, 204, 113, 0.1);
+            transform: scale(0.8);
+        }
+
+        /* 添加触摸反馈 */
+        @media (hover: none) {
+            .copy-button {
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .copy-button:active {
+                background: linear-gradient(to right, #fb7542, #ef997f);
+                box-shadow: 0 2px 4px rgba(46, 204, 113, 0.1);
+                transform: scale(0.8);
+            }
+        }
+
+        /* 添加Toast提示样式 */
+        .toast-message {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 0.4rem;
+            font-size: 0.9rem;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            max-width: 80%;
+            pointer-events: none;
+        }
+
+        /* 加载中的Toast样式 */
+        .toast-message.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* 添加加载动画样式 */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+
+        /* 禁用下拉刷新时的样式 */
+        .pull-refresh-disabled {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <!-- 下拉刷新提示 -->
+    <div class="pull-refresh-indicator" :class="{
+                 visible: isRefreshVisible,
+                 'pull-refresh-disabled': allTasksCompleted 
+             }">
+        <span>{{ refreshText }}</span>
+    </div>
+    <!-- 弹窗结构 -->
+    <div class="modal" v-bind:class="{ show: showModal }">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>过程很简单，几秒就会了</span>
+            </div>
+            <div class="modal-body">
+                <img src="https://coraladimg.oss-cn-hangzhou.aliyuncs.com/2024/11/25/38d7c801-7d10-43ac-b319-c5b14dc60559_1625288373070.jpg" alt="解锁图标" class="unlock-image" />
+                <div class="steps1">
+                    <p class="step1">1. 进入小游戏，点击右上角 <span class="highlight1">解锁盒子</span></p>
+                    <p class="step1">2. 广告播放完成后点击广告下方的 <span class="highlight1">绿色按钮</span>并等6秒</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button @click="closeModal">知道了，马上去</button>
+            </div>
+        </div>
+    </div>
+    <!-- Toast提示 -->
+    <div class="toast-message" :class="{ show: showToast }">{{ toastMessage }}</div>
+
+    <div class="container">
+        <!-- 顶部提示栏 -->
+        <div class="alert">
+            <span class="sos-icon">🆘</span>
+            卡着不动？下拉刷新
+        </div>
+
+        <!-- 任务进度区域 -->
+        <div class="progress-section">
+            <div class="progress-text">完成以下全部任务获取</div>
+            <div class="remaining-tasks">
+                还有<span class="remaining-count">{{ remainingTasks }}</span>个任务需完成
+            </div>
+        </div>
+
+        <!-- 任务列表标题 -->
+        <div class="task-container" :class="{ hide: allTasksCompleted }">
+            <div class="task-header">
+                <div class="task-title">
+                    <span class="icon">⌛</span>
+                    任务列表
+                </div>
+                <div class="task-time">所有任务完成只需45秒钟</div>
+            </div>
+
+            <!-- 任务列表 -->
+            <div class="task-list">
+                <!-- 使用v-for渲染任务列表 -->
+                <div class="task-wrapper" v-for="(task, index) in tasks" :key="index">
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="lock-icon">🔒</div>
+                            <div class="task-content">
+                                <div class="task-name">
+                                    {{ task.name }}
+                                    <span class="status" :class="{ completed: task.completed }">
+                                            {{ task.completed ? '已完成' : '未完成' }}
+                                        </span>
+                                </div>
+                                <div class="task-desc">{{ task.desc }}</div>
+                            </div>
+                        </div>
+                        <button class="unlock-btn" :class="{ completed: task.completed }"
+                                @click="handleUnlock(index)">
+                            {{ task.completed ? '已完成' : '去解锁' }}
+                        </button>
+                    </div>
+                    <div class="task-instruction" v-html="task.instruction"></div>
+                </div>
+            </div>
+
+            <!-- 底部教程链接 -->
+            <div class="footer">
+                <a href="#">任务流程不清楚？点这里看教程</a>
+            </div>
+        </div>
+
+        <!-- 完成提示 -->
+        <div class="completion-message" :class="{ show: allTasksCompleted }">
+            <!-- <div>恭喜已完成所有任务</div> -->
+            <div class="api-content" v-if="apiData.title || apiData.content">
+                <div class="api-title" v-if="apiData.title">{{ apiData.title }}</div>
+                <div class="api-text" v-if="apiData.content" v-html="apiData.content"></div>
+                <button v-if="apiData.copy == 1" class="copy-button" @click="handleCopy"
+                        style="display: block !important;">
+                    点击复制
+                </button>
+                <!-- 添加调试信息 -->
+                <div style="display: none;">
+                    Debug: copy={{ apiData.copy }},
+                    copyContent={{ apiData.copyContent }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            // 下拉刷新相关
+            isRefreshVisible: false,
+            refreshText: '↓ 下拉刷新',
+            touchStartY: 0,
+            minSwipeDistance: 100,
+
+            // 计时相关
+            startTime: 0,
+            isHidden: false,
+            duration: 0,
+
+            // 当前处理的任务索引
+            currentTaskIndex: -1,
+
+            // 任务相关
+            remainingTasks: 2,
+            tasks: [
+                {
+                    name: '小程序解锁任务',
+                    desc: '解锁完广告，回来就算完成👉',
+                    completed: false,
+                    instruction: '点【<span class="highlight">去解锁</span>】跳入小程序，解锁看完视频广告，点<span class="highlight">广告底部绿色按钮，停6秒</span>，再关广告，最后点右上角小圆圈返回'
+                },
+                {
+                    name: '小程序解锁任务',
+                    desc: '解锁完广告，回来就算完成👉',
+                    completed: false,
+                    instruction: '点【<span class="highlight">去解锁</span>】跳入小程序，解锁看完视频广告，点<span class="highlight">广告底部绿色按钮，停6秒</span>，再关广告，最后点右上角小圆圈返回'
+                }
+            ],
+            uid: '',
+            username1: '',
+            projectName1: '',
+            ip: '',
+            // 弹窗相关
+            isPopupVisible: false,
+            popupImage: '',
+            popupText: '',
+            showModal: false,  // 控制弹窗的显示
+
+            // 添加API返回数据相关的属性
+            apiData: {
+                title: '',
+                content: '',
+                copy: 0,
+                copyContent: ''
+            },
+
+            // Toast相关
+            showToast: false,
+            toastMessage: '',
+
+            // 添加加载动画相关的属性
+            isLoading: false,
+        },
+
+        computed: {
+            allTasksCompleted() {
+                return this.tasks.every(task => task.completed);
+            }
+        },
+
+        created() {
+            // 监听触摸事件
+            document.addEventListener('touchstart', this.handleTouchStart);
+            document.addEventListener('touchmove', this.handleTouchMove);
+            document.addEventListener('touchend', this.handleTouchEnd);
+            // 获取用户 IP
+            // this.getVisitorIP();
+            this.getIP()
+        },
+
+
+        mounted() {
+            // 从 URL 获取 id 参数
+
+                const urlParams = new URLSearchParams(window.location.search);
+                this.uid = urlParams.get('id');
+                this.detectEnvironment();
+
+        },
+
+        methods: {
+
+            detectEnvironment() {
+                const userAgent = navigator.userAgent.toLowerCase();
+
+                // 先判断是否是移动端（iOS/Android）或是电脑端
+                if (/iphone|ipod|ipad|android/i.test(userAgent)) {
+                    // 是移动端设备
+                    this.detectMobile(userAgent);
+                } else {
+                    // 是电脑设备
+                    this.detectPC(userAgent);
+                }
+            },
+
+            detectMobile(userAgent) {
+                if (/iphone|ipod|ipad/i.test(userAgent)) {
+                    // iOS设备
+                    this.detectIOS(userAgent);
+                } else {
+                    // 其他移动端设备（例如Android）
+                    this.detectOtherMobile(userAgent);
+                }
+            },
+            detectIOS(userAgent) {
+                if (userAgent.includes('micromessenger')) {
+
+                    alert('当前在iOS设备上的微信');
+                } else if (userAgent.includes('qq')) {
+                    alert('当前在iOS设备上的QQ');
+                } else {
+                    alert('当前在iOS设备上的浏览器');
+                }
+            },
+            detectOtherMobile(userAgent) {
+                if (userAgent.includes('micromessenger')) {
+                    alert('当前在移动设备上的微信');
+                } else if (userAgent.includes('qq')) {
+                    alert('当前在移动设备上的QQ');
+                } else {
+                    alert('当前在移动设备上的浏览器');
+                }
+            },
+            detectPC(userAgent) {
+                if (userAgent.includes('micromessenger')) {
+                    alert('当前在电脑上的微信');
+                } else if (userAgent.includes('qq')) {
+                    alert('当前在电脑QQ');
+                } else {
+                    alert('当前在电脑浏览器');
+                }
+            },
+            // 获取访问者 IP 的方法
+            getVisitorIP() {
+                fetch('https://api.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.ip = data.ip;
+                        console.log('访问者IP:', this.ip);
+                    })
+                    .catch(error => {
+                        console.error('获取IP失败:', error);
+                        // 备用 IP 获取方法
+                        this.getBackupIP();
+                    });
+            },
+
+            // 备用 IP 获取方法
+            getBackupIP() {
+                fetch('https://api.db-ip.com/v2/free/self')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.ip = data.ipAddress;
+                        console.log('访问者IP (备用方法):', this.ip);
+                    })
+                    .catch(error => {
+                        console.error('备用IP获取也失败:', error);
+                        this.ip = '未知IP';
+                    });
+            },
+
+            getIP: function () {
+                console.log('开始获取！');
+                fetch('https://api.coralset.com/public/getIp')  // 请替换为你自己后端的地址
+                    .then(response => response.text())  // 获取原始响应文本
+                    .then((data) => {  // 直接使用返回的文本数据
+                        // 检查 IP 地址是否有效
+                        if (!data || data.trim() === '') {
+                           this.getVisitorIP()
+                        } else {
+                            this.ip = data;  // 将获取到的有效 IP 地址存储到 data 中
+                            console.log('User IP:', this.ip);  // 打印 IP 地址
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('获取用户 IP 失败:', error);
+                    });
+
+
+            },
+
+            // 处理页面可见性变化
+            handleVisibilityChange() {
+                if (document.hidden) {
+                    this.startTime = new Date().getTime();
+                    this.isHidden = true;
+                    this.showModal = false;
+                    console.log('页面隐藏，开始计时...');
+                } else if (this.isHidden) {
+                    const endTime = new Date().getTime();
+                    this.duration = (endTime - this.startTime) / 1000;
+                    console.log(`页面重新可见，隐藏持续时间：${this.duration}秒`);
+                    this.isHidden = false;
+                    // 检查是否满足完成条件
+                    if (this.duration >= 1) {
+                        this.completeTask(this.currentTaskIndex);
+                        console.log('任务完成');
+                    }
+                    // 移除监听器
+                    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+                }
+            },
+
+            // 处理解锁按钮点击
+            handleUnlock(index) {
+                console.log('监测到点击按钮事件！');
+                // 存储当前任务索引
+                this.currentTaskIndex = index;
+                // 监听页面可见性变化
+                document.addEventListener('visibilitychange', this.handleVisibilityChange);
+                this.popupText = '解锁任务说明：请完成视频广告并按步骤操作。'; // 可以根据任务来动态调整文字
+                this.showModal = true;
+            },
+            // 关闭弹窗
+            closeModal() {
+                this.showModal = false;
+            },
+            // 完成任务
+            completeTask(index) {
+                this.tasks[index].completed = true;
+                this.remainingTasks = Math.max(0, this.remainingTasks - 1);
+
+                // 如果所有任务完成
+                if (this.allTasksCompleted) {
+                    // 显示完成提示
+                    this.showToastMessage('任务已全部完成');
+
+                    setTimeout(() => {
+                        this.isLoading = true;
+                        this.showToastMessage('加载中...', 'loading');
+
+                        setTimeout(() => {
+                            this.isLoading = false;
+                            this.showToast = false;
+                            // 滚动到顶部
+                            window.scrollTo({
+                                top: 0,
+                                behavior: 'smooth'
+                            });
+                            // 获取数据
+                            this.getOneDate();
+
+                        }, 500);
+                    }, 700);
+                }
+            },
+            record1() {
+                // 在两个任务完成后，记录并将参数传递到后端服务器
+                console.log('开始记录');
+                fetch('https://api.coralset.com/public/addrecord', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        // appid: '',
+
+                        username: this.username,
+                        ip: this.ip || '',
+                        projectName: 'H5',
+                        // createTime: new Date().getTime() // 当前时间戳
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === '200') {
+                            console.log('记录成功1:', data);
+                        } else {
+                            console.error('记录失败:', data.msg);
+                            console.error('发送的数据:', {
+                                // appid: '',
+
+                                username: this.username,
+                                ip: this.ip || '',
+                                projectName: 'H5',
+                                // createTime: new Date().getTime() // 当前时间戳
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('记录失败1:', error);
+                    });
+            },
+            // 获取数据的方法
+            getOneDate() {
+                console.log('开始获取数据');
+
+                fetch('https://api.coralset.com/public/selectByUnid?' + new URLSearchParams({
+                    unid: this.uid
+                }))
+                    .then(response => {
+                        if (!response.ok) {
+                            // throw new Error('网络请求失败');
+                            console.log('网络请求失败');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.code !== '200') {
+                            console.log('网络请求失败')
+                        }
+                        console.log('获取的数据是：', data.data);
+                        // 更新API数据
+                        // 确保copy值为数字类型
+                        const apiData = {
+                            ...data.data,
+                            copy: parseInt(data.data.copy)
+                        };
+                        this.apiData = apiData;
+                        console.log('copy值是：', this.apiData.copy);
+                        console.log('copyContent是：', this.apiData.copyContent);
+                        console.log('copy的类型是：', typeof this.apiData.copy);
+                        // 确保在获取到数据后再设置用户名和执行记录
+                        if (this.apiData.username) {
+                            this.username = this.apiData.username;
+                            // 在确保有用户名的情况下执行记录
+                            this.record1();
+                        } else {
+                            console.error('未获取到用户名，跳过记录');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('请求失败：', error);
+                        // 在数据获取失败时不执行记录
+                        console.log('网络请求失败')
+                    });
+            },
+
+            // 下拉刷新相关方法
+            handleTouchStart(e) {
+                this.touchStartY = e.touches[0].clientY;
+            },
+
+            handleTouchMove(e) {
+                // 如果任务已完成，禁用下拉刷新
+                if (this.allTasksCompleted) {
+                    return;
+                }
+
+                if (window.scrollY === 0) {
+                    const currentY = e.touches[0].clientY;
+                    const distance = currentY - this.touchStartY;
+
+                    if (distance > 30) {
+                        this.isRefreshVisible = true;
+                        this.refreshText = distance > this.minSwipeDistance ?
+                            '↑ 释放刷新' : '↓ 下拉刷新';
+                    } else {
+                        this.isRefreshVisible = false;
+                    }
+                }
+            },
+
+            handleTouchEnd(e) {
+                // 如果任务已完成，禁用下拉刷新
+                if (this.allTasksCompleted) {
+                    return;
+                }
+
+                const touchEndY = e.changedTouches[0].clientY;
+                const swipeDistance = touchEndY - this.touchStartY;
+
+                if (window.scrollY === 0 && swipeDistance > this.minSwipeDistance) {
+                    this.refreshText = '刷新中...';
+                    location.reload();
+                } else {
+                    this.isRefreshVisible = false;
+                }
+            },
+
+            // 显示Toast提示
+            showToastMessage(message, type = 'normal') {
+                this.toastMessage = message;
+                this.showToast = true;
+
+                // 获取Toast元素
+                const toastEl = document.querySelector('.toast-message');
+
+                // 根据类型添加不同的类
+                if (type === 'loading') {
+                    toastEl.classList.add('loading');
+                    // 添加加载动画
+                    const loadingSpinner = document.createElement('div');
+                    loadingSpinner.className = 'loading-spinner';
+                    toastEl.appendChild(loadingSpinner);
+                } else {
+                    toastEl.classList.remove('loading');
+                    // 移除所有加载动画元素
+                    const spinners = toastEl.querySelectorAll('.loading-spinner');
+                    spinners.forEach(spinner => spinner.remove());
+                }
+
+                setTimeout(() => {
+                    this.showToast = false;
+                    // 移除loading类
+                    toastEl.classList.remove('loading');
+                }, 1500);
+            },
+
+            // 修改复制功能
+            handleCopy() {
+                try {
+                    // 创建临时文本区域
+                    const textArea = document.createElement('textarea');
+                    textArea.value = this.apiData.copyContent;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-9999px';
+                    textArea.style.top = '0';
+                    document.body.appendChild(textArea);
+
+                    // 选择文本
+                    textArea.focus();
+                    textArea.select();
+
+                    // 执行复制命令
+                    const successful = document.execCommand('copy');
+
+                    // 移除临时元素
+                    document.body.removeChild(textArea);
+
+                    // 显示结果
+                    if (successful) {
+                        this.showToastMessage('复制成功');
+                    } else {
+                        this.showToastMessage('复制失败，请手动复制');
+                    }
+                } catch (err) {
+                    console.error('复制失败:', err);
+                    this.showToastMessage('复制失败，请手动复制');
+                }
+            }
+        },
+
+        destroyed() {
+            // 清理事件监听
+            document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+            document.removeEventListener('touchstart', this.handleTouchStart);
+            document.removeEventListener('touchmove', this.handleTouchMove);
+            document.removeEventListener('touchend', this.handleTouchEnd);
+        }
+    });
+</script>
+</body>
+
+</html>
